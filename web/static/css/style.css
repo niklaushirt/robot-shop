@@ -1,0 +1,196 @@
+:root {
+    font-family: sans-serif;
+}
+
+body {
+    height: 1000px;
+}
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+}
+
+h1 a:link {
+    color: rgb(184 74 0);
+    text-decoration: none;
+}
+
+h1 a:visited {
+    color: rgb(184 74 0);
+    text-decoration: none;
+}
+
+h3 {
+    font-family: 'Orbitron', sans-serif;
+    margin: 5px;
+}
+
+h3 a:link {
+    color: rgb(0, 6, 184);
+    text-decoration: none;
+}
+
+h3 a:visited {
+    color: rgb(0, 6, 184);
+    text-decoration: none;
+}
+
+.category {
+    font-size: 14pt;
+    cursor: context-menu;
+    text-transform: capitalize;
+}
+
+.carttotal {
+    margin-left: 25px;
+}
+
+ul.products {
+    margin: 5px;
+}
+
+a.product:visited {
+    color: rgb(0, 6, 184);
+    text-decoration: none;
+}
+
+a.product:link {
+    color: rgb(0, 6, 184);
+    text-decoration: none;
+}
+
+a.product:hover {
+    color: rgb(255, 136, 0);
+    text-decoration: none;
+}
+
+#stan {
+    float: right;
+    position: relative;
+    top: -75px;
+    padding: 0px;
+    margin-top: 0px;
+    margin-right: 5%;
+    margin-bottom: 0px;
+    margin-left: 0px;
+}
+
+#search {
+    float: right;
+    position: relative;
+    top: -50px;
+}
+
+.row, .column, .nav, .main {
+    margin: 0px;
+    box-sizing: border-box;
+    width: 1500px;
+}
+
+.column {
+    float: left;
+    padding: 10px;
+}
+
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.nav {
+    width: 25%;
+}
+
+.main {
+    width: 900px;
+    padding-left: 150px;
+}
+
+.footer {
+    font-size: 8pt;
+}
+
+/* product details */
+.productimage {
+    padding: 5px;
+    margin: 10px;
+    width: 300px;
+    height: 300px;
+}
+
+.description {
+    width: 300px;
+    margin: 10px;
+}
+
+.productcart {
+    border-top: 1px solid rgb(0, 6, 184);
+    background-color: azure;
+    margin: 10px;
+    padding: 10px;
+    width: 500px;
+}
+
+.rating {
+    margin: 10px;
+    padding: 10px;
+    background-color: #f0f9ff;
+    border-bottom: 1px solid rgb(0, 6, 184);
+    width: 500px;
+}
+
+.vote-star {
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+/* login register */
+table.credentials {
+    border: 2px solid rgb(0, 6, 184);
+    padding: 10px;
+    margin: 10px;
+}
+
+.message {
+    color: magenta;
+    font-weight: bold;
+    height: 30px;
+}
+
+.centre {
+    text-align: center;
+}
+
+/* cart */
+.currency {
+    text-align: right;
+}
+
+/* payment */
+a.cont:visited {
+    color: rgb(0, 6, 184);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a.cont:link {
+    color: rgb(0, 6, 184);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a.cont:hover {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+/* splash */
+div.splash {
+    background-color: #ebf7ff;
+    padding: 5px;
+    margin: 0px;
+}

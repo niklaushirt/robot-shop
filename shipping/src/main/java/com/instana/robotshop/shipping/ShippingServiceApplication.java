@@ -64,13 +64,13 @@ public class ShippingServiceApplication implements WebMvcConfigurer {
         registry.addInterceptor(new InstanaDatacenterTagInterceptor());
     }
 
-    private static class InstanaDatacenterTagInterceptor extends HandlerInterceptorAdapter {
+    private static class InstanaDatacenterTagInterceptor implements HandlerInterceptor {
         @Override
         public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
             SpanSupport.annotate("datacenter", DATA_CENTERS[new Random().nextInt(DATA_CENTERS.length)]);
 
-            return super.preHandle(request, response, handler);
+            return true;
         }
     }
 }

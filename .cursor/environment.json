@@ -1,0 +1,13 @@
+{
+  "name": "Stan's Robot Shop",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "robot-shop",
+      "command": "sudo docker compose logs -f --tail=100"
+    }
+  ],
+  "ports": [8080]
+}

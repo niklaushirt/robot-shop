@@ -1,9 +1,9 @@
 #
 # Build
 #
-FROM debian:10 AS build
-
-RUN apt-get update && apt-get -y install maven
+# debian:10 (Buster) is EOL and its apt repos are archived, so installing maven
+# via apt no longer works. Use the official Maven image bundling JDK 8 instead.
+FROM maven:3.9-eclipse-temurin-8 AS build
 
 WORKDIR /opt/shipping
 
@@ -15,7 +15,9 @@ RUN mvn package
 #
 # Run
 #
-FROM openjdk:8-jdk
+# openjdk:8-jdk was removed from Docker Hub; eclipse-temurin is the official
+# OpenJDK 8 replacement image.
+FROM eclipse-temurin:8-jdk
 
 EXPOSE 8080
 

@@ -4,7 +4,10 @@
 set -euo pipefail
 
 DOCKER_DAEMON_JSON=/etc/docker/daemon.json
-DOCKERD_LOG=/tmp/dockerd.log
+# Log to a root-owned path that is recreated fresh on every boot. /tmp is a poor
+# choice here: a snapshot can capture a stale, still-open dockerd.log that even
+# root cannot reopen for writing, which would abort the daemon launch redirect.
+DOCKERD_LOG=/var/log/robotshop-dockerd.log
 
 # In this VM Docker runs on a nested overlay filesystem where the default
 # overlay2 / containerd-snapshotter storage driver cannot mount layers.
@@ -39,15 +42,18 @@ start_dockerd() {
     return 0
   fi
   write_daemon_json
-  sudo bash -c "dockerd >>'$DOCKERD_LOG' 2>&1 &"
+  # Clear stale pid files left over from a snapshot so dockerd will start.
+  sudo rm -f /var/run/docker.pid /run/docker.pid
+  # Launch dockerd detached, truncating a fresh root-owned log each boot.
+  sudo bash -c "dockerd >'$DOCKERD_LOG' 2>&1 &"
   # Wait for the daemon socket to come up.
-  for _ in $(seq 1 30); do
+  for _ in $(seq 1 60); do
     if dockerd_running; then
       return 0
     fi
     sleep 1
   done
   echo "dockerd failed to start; last log lines:" >&2
-  tail -n 40 "$DOCKERD_LOG" >&2 || true
+  sudo tail -n 40 "$DOCKERD_LOG" >&2 || true
   return 1
 }

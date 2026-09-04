@@ -14,6 +14,20 @@ cd "$REPO_DIR"
 
 log() { echo "[start] $*"; }
 
+ensure_forwarding() {
+  # The nested Cloud Agent VM boots with the legacy iptables FORWARD policy set
+  # to DROP, while Docker 29 installs its accept rules in the nftables backend.
+  # Because packets traverse both backends, the legacy DROP silently blocks all
+  # container-to-container traffic (apps cannot reach mongodb/mysql/redis/etc).
+  # Ensure the FORWARD policy is ACCEPT on both backends so bridge traffic flows.
+  for ipt in iptables-legacy iptables; do
+    if command -v "$ipt" >/dev/null 2>&1; then
+      sudo "$ipt" -P FORWARD ACCEPT 2>/dev/null || true
+    fi
+  done
+  log "Enabled IPv4 FORWARD (container-to-container networking)"
+}
+
 ensure_daemon() {
   if sudo docker info >/dev/null 2>&1; then
     log "Docker daemon already running"
@@ -49,6 +63,7 @@ wait_for_web() {
 }
 
 ensure_daemon
+ensure_forwarding
 log "Bringing up the Robot Shop stack"
 sudo -E docker compose up -d
 wait_for_web

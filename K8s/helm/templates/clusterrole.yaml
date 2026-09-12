@@ -12,4 +12,25 @@ rules:
   - podsecuritypolicies
   verbs:
   - use
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  verbs:
+  - get
+  - list
+  - watch
 {{ end }}

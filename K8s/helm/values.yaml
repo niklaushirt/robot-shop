@@ -4,6 +4,8 @@ image:
   repo: robotshop
   version: latest
   pullPolicy: IfNotPresent
+  pullSecrets:
+    - name: dockerhub-secret
 
 # EUM configuration
 # Provide your key and set the endpoint
@@ -52,6 +54,16 @@ payment:
 rabbitmq: {}
 
 ratings: {}
+
+recommendations:
+  # watsonx.ai credentials (required for AI recommendations)
+  # Create a Kubernetes secret with these values:
+  # kubectl create secret generic watsonx-credentials \
+  #   --from-literal=api-key=YOUR_API_KEY \
+  #   --from-literal=project-id=YOUR_PROJECT_ID
+  watsonx:
+    secretName: watsonx-credentials
+    url: https://us-south.ml.cloud.ibm.com
 
 redis:
   # Storage class to use with redis statefulset.

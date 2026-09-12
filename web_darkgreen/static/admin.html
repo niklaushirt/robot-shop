@@ -1,0 +1,146 @@
+<!-- Admin Panel for Load Generator Control -->
+<div class="admin-container">
+    <h2>🛠️ Load Generator Admin Panel</h2>
+    
+    <!-- Memory Monitor Section -->
+    <div class="admin-section memory-section">
+        <h3>💾 Checkout-Recommendations Memory</h3>
+        <div class="memory-card">
+            <div class="memory-bar-container">
+                <div class="memory-bar" ng-style="{'width': data.checkout_memory.percentage + '%'}"
+                     ng-class="{'memory-normal': data.checkout_memory.percentage < 70, 'memory-warning': data.checkout_memory.percentage >= 70 && data.checkout_memory.percentage < 90, 'memory-critical': data.checkout_memory.percentage >= 90}">
+                </div>
+            </div>
+            <div class="memory-stats">
+                <p><strong>Current:</strong> {{ data.checkout_memory.current_mb || 0 | number:2 }} MB / {{ data.checkout_memory.limit_mb || 512 }} MB</p>
+                <p><strong>Usage:</strong> <span ng-class="{'text-warning': data.checkout_memory.percentage >= 70, 'text-critical': data.checkout_memory.percentage >= 90}">{{ data.checkout_memory.percentage || 0 | number:2 }}%</span></p>
+                <p ng-if="data.checkout_memory.last_update"><small>Last updated: {{ data.checkout_memory.last_update | date:'medium' }}</small></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Section -->
+    <div class="admin-section status-section">
+        <h3>Status</h3>
+        <div class="status-card">
+            <div class="status-indicator" ng-class="{'status-running': data.loadgen.status === 'running', 'status-stopped': data.loadgen.status === 'stopped', 'status-error': data.loadgen.status === 'error'}">
+                <span class="status-dot"></span>
+                <span class="status-text">{{ data.loadgen.status | uppercase }}</span>
+            </div>
+            <div class="status-details" ng-if="data.loadgen.status === 'running'">
+                <p><strong>Active Clients:</strong> {{ data.loadgen.active_clients }}</p>
+                <p><strong>Started:</strong> {{ data.loadgen.start_time | date:'medium' }}</p>
+                <p><strong>Target:</strong> {{ data.loadgen.target_host }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Control Section -->
+    <div class="admin-section control-section">
+        <h3>Controls</h3>
+        <div class="control-buttons">
+            <div class="control-group">
+                <label for="numClients">Number of Clients:</label>
+                <input type="number" id="numClients" ng-model="data.loadgen.num_clients" min="1" max="50" value="10" />
+            </div>
+            <button class="btn btn-start" ng-click="startLoadGen();" ng-disabled="data.loadgen.status === 'running'">
+                ▶️ Start Load Generator
+            </button>
+            <button class="btn btn-stop" ng-click="stopLoadGen();" ng-disabled="data.loadgen.status !== 'running'">
+                ⏹️ Stop Load Generator
+            </button>
+            <button class="btn btn-refresh" ng-click="refreshStatus();">
+                🔄 Refresh Status
+            </button>
+        </div>
+        
+        <!-- OOM Trigger Section -->
+        <div class="oom-trigger-section">
+            <h4>🚨 OOM Trigger (30 Second OOM)</h4>
+            <p class="oom-description">Aggressively call recommendations API with 1MB padding per request to trigger OOM within 30 seconds</p>
+            <div class="control-group">
+                <label for="targetRequests">Target Requests:</label>
+                <input type="number" id="targetRequests" ng-model="data.oom_trigger.target_requests" min="100" max="2000" value="500" />
+                <small>Default: 500 requests × 1MB = ~500MB in 30 seconds</small>
+            </div>
+            <div class="oom-status" ng-if="data.oom_trigger.active">
+                <p><strong>Status:</strong> <span class="text-warning">ACTIVE</span></p>
+                <p><strong>Progress:</strong> {{ data.oom_trigger.requests_sent }} / {{ data.oom_trigger.target_requests }}</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" ng-style="{'width': (data.oom_trigger.requests_sent / data.oom_trigger.target_requests * 100) + '%'}"></div>
+                </div>
+            </div>
+            <button class="btn btn-oom-trigger" ng-click="triggerOOM();" ng-disabled="data.oom_trigger.active">
+                💥 TRIGGER OOM
+            </button>
+            <button class="btn btn-stop" ng-click="stopOOMTrigger();" ng-disabled="!data.oom_trigger.active">
+                ⏹️ Stop OOM Trigger
+            </button>
+        </div>
+    </div>
+
+    <!-- Metrics Section -->
+    <div class="admin-section metrics-section">
+        <h3>📊 API Invocation Metrics</h3>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">🛒</div>
+                <div class="metric-label">Catalogue</div>
+                <div class="metric-value">{{ data.loadgen.apis_invoked.catalogue || 0 }}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">👤</div>
+                <div class="metric-label">User</div>
+                <div class="metric-value">{{ data.loadgen.apis_invoked.user || 0 }}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🛍️</div>
+                <div class="metric-label">Cart</div>
+                <div class="metric-value">{{ data.loadgen.apis_invoked.cart || 0 }}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🚚</div>
+                <div class="metric-label">Shipping</div>
+                <div class="metric-value">{{ data.loadgen.apis_invoked.shipping || 0 }}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">💳</div>
+                <div class="metric-label">Payment</div>
+                <div class="metric-value">{{ data.loadgen.apis_invoked.payment || 0 }}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">⭐</div>
+                <div class="metric-label">Ratings</div>
+                <div class="metric-value">{{ data.loadgen.apis_invoked.ratings || 0 }}</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🤖</div>
+                <div class="metric-label">Recommendations</div>
+                <div class="metric-value">{{ data.loadgen.apis_invoked.recommendations || 0 }}</div>
+            </div>
+        </div>
+        <div class="last-update" ng-if="data.loadgen.last_update">
+            <small>Last updated: {{ data.loadgen.last_update | date:'medium' }}</small>
+        </div>
+    </div>
+
+    <!-- Info Section -->
+    <div class="admin-section info-section">
+        <h3>ℹ️ Information</h3>
+        <div class="info-box">
+            <p><strong>Purpose:</strong> This load generator simulates user traffic to trigger the memory leak in the checkout-recommendations service.</p>
+            <p><strong>Normal Load:</strong> With 10+ clients, the checkout-recommendations container should run out of memory (OOM) in approximately 30 minutes due to unbounded caching.</p>
+            <p><strong>🚨 AGGRESSIVE OOM Trigger:</strong> The "TRIGGER OOM" button uses 20 parallel workers to send 500 requests with 1MB padding each, triggering OOM within 30 seconds. Each unique cart ID creates separate cache entries with 1MB of padding data.</p>
+            <p><strong>Monitoring:</strong> Watch the real-time memory usage above or check your Kubernetes dashboard/APM tool. Memory should climb rapidly from ~50MB to 500MB+ within 30 seconds.</p>
+        </div>
+    </div>
+
+    <!-- Logs Section -->
+    <div class="admin-section logs-section" ng-if="data.loadgen.status === 'running'">
+        <h3>📝 Recent Logs</h3>
+        <button class="btn btn-small" ng-click="fetchLogs();">View Logs</button>
+        <div class="logs-container" ng-if="data.loadgen.logs">
+            <pre>{{ data.loadgen.logs }}</pre>
+        </div>
+    </div>
+</div>

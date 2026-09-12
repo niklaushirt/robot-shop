@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <!--# include file="eum.html" -->
+    <title>Stan's Robot Shop</title>
+    <link rel="shortcut icon" type="image/png" href="/media/instana_icon_square.png"/>
+    <style type="text/css">
+        @import url('https://fonts.googleapis.com/css?family=Orbitron');
+        @import url('/css/style.css?v=20260912');
+        @import url('/css/auto-complete.css?v=20260912');
+    </style>
+    <meta http-equiv="Cache-Control" content="no-Cache">
+    <meta http-equiv="Pragma" content="no-cache">
+</head>
+
+<body ng-app="robotshop">
+<div ng-controller="shopform" class="app-shell">
+    <header class="site-header">
+        <a href="/" class="brand" aria-label="Stan's Robot Shop home">
+            <span class="brand-mark" aria-hidden="true">S</span>
+            <span class="brand-copy">
+                <span class="brand-kicker">Microservices marketplace</span>
+                <h1>Stan's Robot Shop</h1>
+            </span>
+        </a>
+
+        <div id="search">
+            <form class="search-form" role="search">
+                <label class="sr-only" for="site-search">Search robots</label>
+                <input id="site-search" type="search" placeholder="Search the collection" autocomplete="off" ng-model="data.searchText"/>
+                <button type="button" ng-click="search();">Search</button>
+            </form>
+        </div>
+
+        <span id="stan" aria-hidden="true">
+            <img src="/media/stan.png" alt=""/>
+        </span>
+    </header>
+
+    <div class="row">
+        <!-- left nav -->
+        <aside class="nav column">
+            <div class="nav-section">
+                <span class="nav-label">Account</span>
+                <nav class="primary-nav" aria-label="Account and shop">
+                    <a href="login"><span aria-hidden="true">01</span> Login / Register</a>
+                    <a href="cart"><span aria-hidden="true">02</span> Cart</a>
+                    <a href="admin"><span aria-hidden="true">03</span> Admin</a>
+                </nav>
+            </div>
+
+            <a href="cart" class="cart-summary">
+                <span class="cart-label">Current cart</span>
+                <strong ng-if="data.cart.total == 0" class="carttotal">Empty</strong>
+                <strong ng-if="data.cart.total != 0" class="carttotal">&euro;{{ data.cart.total.toFixed(2) }}</strong>
+                <span class="cart-arrow" aria-hidden="true">&#8599;</span>
+            </a>
+
+            <div class="nav-section category-section">
+                <span class="nav-label">Browse categories</span>
+            <ul class="products">
+                <li ng-repeat="cat in data.categories">
+                    <span ng-click="getProducts(cat);" class="category">{{ cat }}</span>
+                    <ul ng-if="data.products[cat]">
+                        <li ng-repeat="prod in data.products[cat]">
+                            <a class="product" href="product/{{ prod.sku }}">{{ prod.name }}</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            </div>
+
+            <div class="sidebar-status"><span></span> Store services online</div>
+        </aside>
+
+        <!-- main display area -->
+        <main class="main column">
+            <div ng-view></div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <span>Stan's Robot Shop</span>
+        <span ng-if="data.uniqueid">Session {{ data.uniqueid }}</span>
+    </footer>
+
+</div>
+
+<!-- JavaScript -->
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.7/angular-route.js"></script>
+<script src="/js/auto-complete.js?v=20260912"></script>
+<script src="/js/controller.js?v=20260912"></script>
+
+</body>
+</html>

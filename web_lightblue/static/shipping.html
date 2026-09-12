@@ -1,0 +1,29 @@
+<!-- shipping template -->
+<div class="checkout-page">
+    <div class="page-heading">
+        <span class="eyebrow"><span></span> Checkout</span>
+        <h2>Shipping information</h2>
+        <p>Tell us where your new robot companion is headed.</p>
+    </div>
+    <div class="form-stack">
+        <div class="form-row">
+            <label for="country">Country</label>
+            <select id="country" ng-change="countryChanged();" ng-model="data.selectedCountry" ng-options="opt.name for opt in data.countries track by opt.code"></select>
+        </div>
+        <div class="form-row">
+            <label for="location">Location</label>
+            <input id="location" type="text" size="20" ng-model="data.selectedLocation" ng-disabled="data.disableCity"/>
+        </div>
+        <div>
+            <button ng-click="calcShipping();" ng-disabled="data.disableCalc">Calculate shipping</button>
+        </div>
+    </div>
+    <!-- add in shipping distance and cost -->
+    <div ng-if="data.shipping" class="shipping-summary">
+        <div><strong>Distance</strong> {{ data.shipping.distance }} km</div>
+        <div><strong>Cost</strong> &euro;{{ data.shipping.cost.toFixed(2) }}</div>
+        <div>
+            <button ng-click="confirmShipping();">Confirm shipping</button>
+        </div>
+    </div>
+</div>

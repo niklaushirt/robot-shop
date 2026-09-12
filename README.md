@@ -17,6 +17,71 @@ This sample microservice application has been built using these technologies:
 - Nginx
 - AngularJS (1.x)
 
+## 🤖 AI-Powered Recommendations
+
+Robot Shop now includes an **AI Agent** that provides intelligent product recommendations! This demonstrates how to integrate AI capabilities into microservices applications using:
+- **LangGraph** - AI agent workflow framework
+- **watsonx.ai** - IBM's LLM platform (mistral-large model)
+- **FastMCP** - Model Context Protocol for tool integration
+
+The AI agent analyzes your shopping cart and suggests complementary products using real-time analytics data. See the [AI Agent documentation](recommendations/AI_AGENT_README.md) for details.
+
+**Quick Start:**
+```shell
+# Set your watsonx.ai credentials
+export WATSONX_URL="https://us-south.ml.cloud.ibm.com"
+export WATSONX_APIKEY="your-api-key"
+export WATSONX_PROJECT_ID="your-project-id"
+
+# Start Robot Shop with AI recommendations
+docker-compose up -d
+```
+
+Visit [http://localhost:8080](http://localhost:8080), add items to your cart, and see AI-powered recommendations in action!
+
+For complete setup instructions, see:
+- [Quick Start Guide](recommendations/QUICK_START_GUIDE.md) - Get running in 5 minutes
+- [Deployment Guide](recommendations/DEPLOYMENT_GUIDE.md) - Production deployment
+- [Architecture Overview](recommendations/AI_AGENT_ARCHITECTURE.md) - Technical details
+
+## 🔥 Load Generator with Admin UI
+
+Robot Shop now includes an **in-cluster load generator** with a web-based admin panel for easy control! This feature is designed to demonstrate APM capabilities by triggering the intentional memory leak in the checkout-recommendations service.
+
+**Key Features:**
+- ✅ **Web Admin UI** - Start/stop load generator from the browser at `/admin`
+- ✅ **Real-time Metrics** - View API invocation counts and status
+- ✅ **Kubernetes Native** - Runs as Jobs inside your cluster
+- ✅ **Memory Leak Demo** - Triggers OOM in checkout-recommendations (~30 mins with 10 clients)
+- ✅ **Full API Coverage** - Invokes all services for comprehensive APM visibility
+
+**Quick Deploy:**
+```shell
+# Deploy everything with one command
+./deploy-load-generator.sh
+
+# Or manually with Helm
+cd K8s/helm
+helm upgrade --install robot-shop . \
+  --set image.repo=robotshop \
+  --set image.version=latest \
+  --namespace robot-shop \
+  --create-namespace
+```
+
+**Access Admin UI:**
+```shell
+# Port-forward to access locally
+kubectl port-forward -n robot-shop svc/web 8080:8080
+
+# Open browser
+open http://localhost:8080/admin
+```
+
+For complete documentation, see:
+- [Load Generator Deployment Guide](LOAD_GENERATOR_DEPLOYMENT.md) - Full setup instructions
+- [Load Generator Controller README](load-gen-controller/README.md) - API documentation
+
 The various services in the sample application already include all required Instana components installed and configured. The Instana components provide automatic instrumentation for complete end to end [tracing](https://docs.instana.io/core_concepts/tracing/), as well as complete visibility into time series metrics for all the technologies.
 
 To see the application performance results in the Instana dashboard, you will first need an Instana account. Don't worry a [trial account](https://instana.com/trial?utm_source=github&utm_medium=robot_shop) is free.

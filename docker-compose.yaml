@@ -139,6 +139,35 @@ services:
       - robot-shop
     logging:
       <<: *logging
+  checkout-recommendations:
+    build:
+      context: checkout-recommendations
+    image: ${REPO}/rs-checkout-recommendations:${TAG}
+    depends_on:
+      - catalogue
+      - ratings
+    networks:
+      - robot-shop
+    environment:
+      WATSONX_API_KEY: ${WATSONX_API_KEY}
+      WATSONX_PROJECT_ID: ${WATSONX_PROJECT_ID}
+      WATSONX_URL: ${WATSONX_URL:-https://us-south.ml.cloud.ibm.com}
+      CATALOGUE_HOST: catalogue
+      CART_HOST: cart
+      RATINGS_HOST: ratings
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8080/health')"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+    logging:
+      <<: *logging
+    # Memory leak demo: No resource limits set intentionally
+    # In production, you would set memory limits like:
+    # deploy:
+    #   resources:
+    #     limits:
+    #       memory: 512M
   web:
     build:
       context: web
@@ -151,6 +180,7 @@ services:
       - user
       - shipping
       - payment
+      - checkout-recommendations
     ports:
       - "8080:8080"
     networks:
@@ -164,6 +194,21 @@ services:
     # environment:
       # INSTANA_EUM_KEY: <your eum key>
       # INSTANA_EUM_REPORTING_URL: <your reporting url>
+    logging:
+      <<: *logging
+  memory-leak-load-gen:
+    build:
+      context: load-generator
+    image: ${REPO}/rs-memory-leak-load-gen:${TAG}
+    depends_on:
+      - checkout-recommendations
+      - catalogue
+      - ratings
+    networks:
+      - robot-shop
+    environment:
+      RECOMMENDATIONS_URL: http://checkout-recommendations:8080
+    command: ["python", "load_test.py", "--mode", "burst", "--burst-size", "100", "--num-bursts", "20"]
     logging:
       <<: *logging
 

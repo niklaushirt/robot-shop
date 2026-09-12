@@ -6,7 +6,8 @@ from random import choice
 from random import randint
 
 class UserBehavior(HttpUser):
-    wait_time = between(2, 10)
+    # 🚨 AGGRESSIVE LOAD: Reduced wait time to trigger OOM faster
+    wait_time = between(0.1, 0.5)
 
     # source: https://tools.tracemyip.org/search--ip/list
     fake_ip_addresses = [
@@ -48,7 +49,8 @@ class UserBehavior(HttpUser):
 
         self.client.get('/', headers={'x-forwarded-for': fake_ip})
         user = self.client.get('/api/user/uniqueid', headers={'x-forwarded-for': fake_ip}).json()
-        uniqueid = user['uuid']
+        # 🚨 MEMORY LEAK TRIGGER: Generate unique cart ID to maximize cache entries
+        uniqueid = user['uuid'] + '-' + str(random.randint(1, 999999))
         print('User {}'.format(uniqueid))
 
         self.client.get('/api/catalogue/categories', headers={'x-forwarded-for': fake_ip})
@@ -72,6 +74,13 @@ class UserBehavior(HttpUser):
         cart = self.client.get('/api/cart/cart/{}'.format(uniqueid), headers={'x-forwarded-for': fake_ip}).json()
         item = choice(cart['items'])
         self.client.get('/api/cart/update/{}/{}/2'.format(uniqueid, item['sku']), headers={'x-forwarded-for': fake_ip})
+
+        # Get AI recommendations (triggers memory leak in checkout-recommendations service)
+        try:
+            recommendations = self.client.get('/api/recommendations/{}'.format(uniqueid), headers={'x-forwarded-for': fake_ip})
+            print('Recommendations for cart {}: {}'.format(uniqueid, recommendations.status_code))
+        except Exception as e:
+            print('Error getting recommendations: {}'.format(e))
 
         # country codes
         code = choice(self.client.get('/api/shipping/codes', headers={'x-forwarded-for': fake_ip}).json())

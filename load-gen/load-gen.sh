@@ -2,12 +2,13 @@
 
 # set -x
 
+# 🚨 AGGRESSIVE LOAD: Increased default clients to trigger OOM within 2 minutes
 # Changing the NUM_CLIENTS environment variable varies the load on the application
 # The bigger the number the more requests, the bigger the load
-NUM_CLIENTS=1
+NUM_CLIENTS=50
 
-# Time to run with NUM_CLIENTS e.g. 1h
-RUN_TIME=0
+# Time to run with NUM_CLIENTS e.g. 1h, 2m
+RUN_TIME=2m
 
 # HOST where Stan's Robot Shop web UI is running
 HOST="http://localhost:8080"

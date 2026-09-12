@@ -17,6 +17,10 @@ spec:
       {{ if .Values.psp.enabled }}
       serviceAccountName: robot-shop
       {{ end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: user
         image: {{ .Values.image.repo }}/rs-user:{{ .Values.image.version }}

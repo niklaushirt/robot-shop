@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-gen-controller
+  labels:
+    service: load-gen-controller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: load-gen-controller
+  template:
+    metadata:
+      labels:
+        service: load-gen-controller
+    spec:
+      {{ if .Values.psp.enabled }}
+      serviceAccountName: robot-shop
+      {{ end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+      - name: load-gen-controller
+        image: {{ .Values.image.repo }}/rs-load-gen-controller:{{ .Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: LOAD_GEN_IMAGE
+          value: {{ .Values.image.repo }}/rs-load:{{ .Values.image.version }}
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            cpu: 200m
+            memory: 256Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      restartPolicy: Always
+
+# Made with Bob

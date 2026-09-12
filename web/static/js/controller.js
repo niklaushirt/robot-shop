@@ -18,26 +18,29 @@
 
     robotshop.config(['$routeProvider', '$locationProvider', ($routeProvider, $locationProvider) => {
         $routeProvider.when('/', {
-            templateUrl: 'splash.html',
+            templateUrl: 'splash.html?v=20260912',
             controller: 'shopform'
         }).when('/search/:text', {
-            templateUrl: 'search.html',
+            templateUrl: 'search.html?v=20260912',
             controller: 'searchform'
         }).when('/product/:sku', {
-            templateUrl: 'product.html',
+            templateUrl: 'product.html?v=20260912',
             controller: 'productform'
         }).when('/login', {
-            templateUrl: 'login.html',
+            templateUrl: 'login.html?v=20260912',
             controller: 'loginform'
         }).when('/cart', {
-            templateUrl: 'cart.html',
+            templateUrl: 'cart.html?v=20260912',
             controller: 'cartform'
         }).when('/shipping', {
-            templateUrl: 'shipping.html',
+            templateUrl: 'shipping.html?v=20260912',
             controller: 'shipform'
         }).when('/payment', {
-            templateUrl: 'payment.html',
+            templateUrl: 'payment.html?v=20260912',
             controller: 'paymentform'
+        }).when('/admin', {
+            templateUrl: 'admin.html?v=20260912',
+            controller: 'adminform'
         }).otherwise({
             redirectTo: '/'
         });
@@ -275,9 +278,28 @@
         $scope.data.cart = {};
         $scope.data.cart.total = 0;
         $scope.data.uniqueid = currentUser.uniqueid;
+        $scope.data.recommendations = [];
+        $scope.data.recommendationReasoning = '';
 
         $scope.buy = function() {
             $location.url('/shipping');
+        };
+        
+        $scope.addRecommendation = function(sku) {
+            // Add recommended item to cart
+            var url = '/api/cart/add/' + currentUser.uniqueid + '/' + sku + '/1';
+            console.log('Adding recommendation', url);
+            $http({
+                url: url,
+                method: 'GET'
+            }).then((res) => {
+                currentUser.cart = res.data;
+                $scope.data.cart = res.data;
+                // Reload recommendations with updated cart
+                loadRecommendations($scope.data.uniqueid);
+            }).catch((e) => {
+                console.log('ERROR adding recommendation', e);
+            });
         };
         
         $scope.change = function(sku, qty) {
@@ -319,8 +341,24 @@
                 console.log('ERROR', e);
             });
         }
+        
+        function loadRecommendations(id) {
+            $http({
+                url: '/api/recommendations/' + id,
+                method: 'GET'
+            }).then((res) => {
+                console.log('recommendations', res.data);
+                $scope.data.recommendations = res.data.recommendations || [];
+                $scope.data.recommendationReasoning = res.data.reasoning || '';
+            }).catch((e) => {
+                console.log('Recommendations not available', e);
+                // Fail gracefully - recommendations are optional
+                $scope.data.recommendations = [];
+            });
+        }
 
         loadCart($scope.data.uniqueid);
+        loadRecommendations($scope.data.uniqueid);
         console.log('cart init');
     });
 
@@ -557,6 +595,261 @@
             $scope.data.user = currentUser.user;
             loadHistory(currentUser.user.name);
         }
+    });
+
+    robotshop.controller('adminform', function($scope, $http, $interval) {
+        $scope.data = {};
+        $scope.data.loadgen = {
+            status: 'unknown',
+            active_clients: 0,
+            num_clients: 10,
+            start_time: null,
+            target_host: 'http://web:8080',
+            last_update: null,
+            logs: '',
+            apis_invoked: {
+                catalogue: 0,
+                user: 0,
+                cart: 0,
+                shipping: 0,
+                payment: 0,
+                ratings: 0,
+                recommendations: 0
+            }
+        };
+        
+        $scope.data.oom_trigger = {
+            active: false,
+            requests_sent: 0,
+            target_requests: 500,  // 🚨 AGGRESSIVE: 500 requests × 1MB = ~500MB in 30 seconds
+            start_time: null
+        };
+        
+        $scope.data.checkout_memory = {
+            current_mb: 0,
+            limit_mb: 512,
+            percentage: 0,
+            last_update: null
+        };
+
+        var statusInterval;
+        var memoryInterval;
+        var oomInterval;
+
+        $scope.startLoadGen = function() {
+            console.log('Starting load generator with', $scope.data.loadgen.num_clients, 'clients');
+            $http({
+                url: '/api/loadgen/start',
+                method: 'POST',
+                data: {
+                    num_clients: $scope.data.loadgen.num_clients
+                }
+            }).then((res) => {
+                console.log('Load generator started', res.data);
+                $scope.refreshStatus();
+                // Start auto-refresh
+                startAutoRefresh();
+            }).catch((e) => {
+                console.log('ERROR starting load generator', e);
+                alert('Error starting load generator: ' + (e.data ? e.data.error : e.statusText));
+            });
+        };
+
+        $scope.stopLoadGen = function() {
+            console.log('Stopping load generator');
+            $http({
+                url: '/api/loadgen/stop',
+                method: 'POST'
+            }).then((res) => {
+                console.log('Load generator stopped', res.data);
+                $scope.refreshStatus();
+                // Stop auto-refresh
+                stopAutoRefresh();
+            }).catch((e) => {
+                console.log('ERROR stopping load generator', e);
+                alert('Error stopping load generator: ' + (e.data ? e.data.error : e.statusText));
+            });
+        };
+
+        $scope.refreshStatus = function() {
+            $http({
+                url: '/api/loadgen/status',
+                method: 'GET'
+            }).then((res) => {
+                console.log('Load generator status', res.data);
+                $scope.data.loadgen = res.data;
+                // Convert ISO timestamp to Date object
+                if(res.data.start_time) {
+                    $scope.data.loadgen.start_time = new Date(res.data.start_time);
+                }
+                if(res.data.last_update) {
+                    $scope.data.loadgen.last_update = new Date(res.data.last_update);
+                }
+            }).catch((e) => {
+                console.log('ERROR getting load generator status', e);
+                $scope.data.loadgen.status = 'error';
+            });
+        };
+
+        $scope.fetchLogs = function() {
+            $http({
+                url: '/api/loadgen/logs',
+                method: 'GET'
+            }).then((res) => {
+                console.log('Load generator logs', res.data);
+                $scope.data.loadgen.logs = res.data.logs;
+            }).catch((e) => {
+                console.log('ERROR getting logs', e);
+            });
+        };
+        
+        $scope.triggerOOM = function() {
+            console.log('Triggering OOM with', $scope.data.oom_trigger.target_requests, 'requests');
+            $http({
+                url: '/api/oom/trigger',
+                method: 'POST',
+                data: {
+                    target_requests: $scope.data.oom_trigger.target_requests
+                }
+            }).then((res) => {
+                console.log('OOM trigger started', res.data);
+                $scope.data.oom_trigger.active = true;
+                startOOMMonitoring();
+            }).catch((e) => {
+                console.log('ERROR triggering OOM', e);
+                alert('Error triggering OOM: ' + (e.data ? e.data.error : e.statusText));
+            });
+        };
+        
+        $scope.stopOOMTrigger = function() {
+            console.log('Stopping OOM trigger');
+            $http({
+                url: '/api/oom/stop',
+                method: 'POST'
+            }).then((res) => {
+                console.log('OOM trigger stopped', res.data);
+                $scope.data.oom_trigger.active = false;
+                stopOOMMonitoring();
+                refreshOOMStatus();
+            }).catch((e) => {
+                console.log('ERROR stopping OOM trigger', e);
+            });
+        };
+        
+        function refreshMemory() {
+            $http({
+                url: '/api/checkout/memory',
+                method: 'GET'
+            }).then((res) => {
+                $scope.data.checkout_memory = res.data;
+                if(res.data.last_update) {
+                    $scope.data.checkout_memory.last_update = new Date(res.data.last_update);
+                }
+            }).catch((e) => {
+                console.log('ERROR getting memory stats', e);
+            });
+        }
+        
+        function refreshOOMStatus() {
+            $http({
+                url: '/api/oom/status',
+                method: 'GET'
+            }).then((res) => {
+                $scope.data.oom_trigger = res.data;
+                if(res.data.start_time) {
+                    $scope.data.oom_trigger.start_time = new Date(res.data.start_time);
+                }
+                // If OOM trigger completed, stop monitoring
+                if(!res.data.active && oomInterval) {
+                    stopOOMMonitoring();
+                }
+            }).catch((e) => {
+                console.log('ERROR getting OOM status', e);
+            });
+        }
+
+        function startAutoRefresh() {
+            if(!statusInterval) {
+                statusInterval = $interval(function() {
+                    $scope.refreshStatus();
+                }, 5000); // Refresh every 5 seconds
+            }
+        }
+
+        function stopAutoRefresh() {
+            if(statusInterval) {
+                $interval.cancel(statusInterval);
+                statusInterval = null;
+            }
+        }
+        
+        function startMemoryMonitoring() {
+            if(!memoryInterval) {
+                memoryInterval = $interval(function() {
+                    refreshMemory();
+                }, 2000); // Refresh every 2 seconds for real-time monitoring
+            }
+        }
+        
+        function stopMemoryMonitoring() {
+            if(memoryInterval) {
+                $interval.cancel(memoryInterval);
+                memoryInterval = null;
+            }
+        }
+        
+        function startOOMMonitoring() {
+            if(!oomInterval) {
+                oomInterval = $interval(function() {
+                    refreshOOMStatus();
+                    refreshMemory(); // Also refresh memory during OOM trigger
+                }, 1000); // Refresh every second during OOM trigger
+            }
+        }
+        
+        function stopOOMMonitoring() {
+            if(oomInterval) {
+                $interval.cancel(oomInterval);
+                oomInterval = null;
+            }
+        }
+
+        // Cleanup on controller destroy
+        $scope.$on('$destroy', function() {
+            stopAutoRefresh();
+            stopMemoryMonitoring();
+            stopOOMMonitoring();
+        });
+
+        console.log('adminform init');
+        // Initial status load
+        $scope.refreshStatus();
+        refreshMemory();
+        refreshOOMStatus();
+        
+        // Start memory monitoring immediately
+        startMemoryMonitoring();
+        
+        // Start auto-refresh if load gen is running
+        $http({
+            url: '/api/loadgen/status',
+            method: 'GET'
+        }).then((res) => {
+            if(res.data.job_status === 'running') {
+                startAutoRefresh();
+            }
+        });
+        
+        // Check if OOM trigger is active and start monitoring if needed
+        $http({
+            url: '/api/oom/status',
+            method: 'GET'
+        }).then((res) => {
+            if(res.data.active) {
+                $scope.data.oom_trigger.active = true;
+                startOOMMonitoring();
+            }
+        });
     });
 
 }) (window.angular);

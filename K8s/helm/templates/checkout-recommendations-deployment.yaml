@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: checkout-recommendations
+  labels:
+    service: checkout-recommendations
+    demo: memory-leak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      service: checkout-recommendations
+  template:
+    metadata:
+      labels:
+        service: checkout-recommendations
+        demo: memory-leak
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: checkout-recommendations
+        image: quay.io/arthurdm-quay/rs-checkout-recommendations:{{ .Values.image.version }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: INSTANA_AGENT_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: WATSONX_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.recommendations.watsonx.secretName }}
+              key: api-key
+        - name: WATSONX_PROJECT_ID
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.recommendations.watsonx.secretName }}
+              key: project-id
+        - name: WATSONX_URL
+          value: {{ .Values.recommendations.watsonx.url }}
+        - name: CATALOGUE_HOST
+          value: catalogue
+        - name: CART_HOST
+          value: cart
+        - name: RATINGS_HOST
+          value: ratings
+        # ⚠️ MEMORY LEAK DEMO: No memory limits set intentionally
+        # This allows the unbounded cache to grow until OOM
+        # In production, you would set limits like:
+        # resources:
+        #   limits:
+        #     cpu: 500m
+        #     memory: 512Mi
+        #   requests:
+        #     cpu: 200m
+        #     memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+{{- with .Values.recommendations.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.recommendations.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+{{- end }}
+{{- with .Values.recommendations.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+{{- end }}
+
+# Made with Bob

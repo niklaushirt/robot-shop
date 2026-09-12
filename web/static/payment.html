@@ -1,6 +1,10 @@
 <!-- payment template -->
-<div>
-    <h3>Review your order</h3>
+<div class="checkout-page">
+    <div class="page-heading">
+        <span class="eyebrow"><span></span> Final step</span>
+        <h2>Review your order</h2>
+        <p>Confirm the details below before completing checkout.</p>
+    </div>
     <div ng-if="data.cart.total != 0">
         <table>
             <tr>
@@ -36,7 +40,7 @@
     <div class="message">
         {{ data.message }}
     </div>
-    <div ng-if="data.cont">
+    <div ng-if="data.cont" class="order-success">
         Thank you for your order
         <a class="cont" href="/">Continue shopping</a>
     </div>

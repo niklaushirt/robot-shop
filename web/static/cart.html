@@ -1,8 +1,12 @@
 <!-- shopping cart -->
-<div>
-    Shopping cart for {{ data.uniqueid }}
+<div class="cart-page">
+    <div class="page-heading">
+        <span class="eyebrow"><span></span> Your selection</span>
+        <h2>Shopping cart</h2>
+        <p>Cart for {{ data.uniqueid }}</p>
+    </div>
     <div ng-if="data.cart.total == 0">
-        Your cart is empty, get shopping
+        <div class="empty-state">Your cart is empty. Choose a category to meet the robots.</div>
     </div>
     <div ng-if="data.cart.total != 0">
         <table>
@@ -37,5 +41,20 @@
                 </td>
             </tr>
         </table>
+        
+        <!-- AI Recommendations Section -->
+        <div ng-if="data.recommendations.length > 0" class="recommendations-section">
+            <h3>🤖 AI Recommended for You</h3>
+            <p class="recommendations-subtitle">{{ data.recommendationReasoning }}</p>
+            <div class="recommendations-grid">
+                <div ng-repeat="item in data.recommendations" class="recommendation-card">
+                    <img ng-src="/images/{{ item.sku }}.png" alt="{{ item.name }}" onerror="this.src='/images/placeholder.png'" />
+                    <h4>{{ item.name }}</h4>
+                    <p class="recommendation-reason">{{ item.reason }}</p>
+                    <p class="currency">&euro;{{ item.price.toFixed(2) }}</p>
+                    <button ng-click="addRecommendation(item.sku);">Add to Cart</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

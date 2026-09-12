@@ -1,0 +1,28 @@
+**/DO_NOT_DELIVER
+**/.DS_Store
+ca.crt
+**/__pycache__
+.opencode
+
+
+.DS_Store
+*.py[cod]
+__pycache__/
+
+# Local Python environments
+.venv/
+venv/
+demoui/venv/
+
+# Django/local runtime artifacts
+*.sqlite3
+demoui/db.sqlite3
+staticfiles/
+
+# Tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+pip-wheel-metadata/
+
+doc/.DS_Store

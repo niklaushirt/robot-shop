@@ -1,11 +1,17 @@
 <!-- login / register -->
-<div>
+<div class="auth-page">
+    <div class="page-heading">
+        <span class="eyebrow"><span></span> Your account</span>
+        <h2>Welcome back</h2>
+        <p>Sign in to view your history, or create a new shop account.</p>
+    </div>
     <div class="message">
         {{ data.message }}
     </div>
 
-    <div ng-if="data.user.name === undefined">
+    <div ng-if="data.user.name === undefined" class="auth-grid">
         <table class="credentials">
+            <caption>Sign in</caption>
             <tr>
                 <td>Name</td>
                 <td><input type="text" size="20" ng-model="data.name"/></td>
@@ -20,6 +26,7 @@
         </table>
 
         <table class="credentials">
+            <caption>Create account</caption>
             <tr>
                 <td>Name</td>
                 <td><input type="text" size="20" ng-model="data.name"/></td>

@@ -6,6 +6,11 @@ services:
       context: load-gen
     environment:
       HOST: http://web:8080
+      # 🚨 AGGRESSIVE LOAD: High concurrency to trigger OOM within 2 minutes
+      NUM_CLIENTS: 50
+      RUN_TIME: 2m
+      SILENT: 0
+      ERROR: 0
     networks:
       - robot-shop
     depends_on:

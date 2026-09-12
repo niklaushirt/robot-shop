@@ -18,6 +18,10 @@ spec:
       {{ if .Values.psp.enabled }}
       serviceAccountName: robot-shop
       {{ end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: redis
         image: redis:4.0.6
@@ -34,6 +38,9 @@ spec:
           requests:
             cpu: 100m
             memory: 50Mi
+      volumes:
+        - name: data
+          emptyDir: {}
       restartPolicy: Always
       {{- with .Values.redis.affinity }}
       affinity:
@@ -47,16 +54,4 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-  volumeClaimTemplates:
-    - metadata:
-        name: data
-      spec:
-        accessModes: [ "ReadWriteOnce" ]
-        {{ if not .Values.openshift }}
-        storageClassName: {{ .Values.redis.storageClassName }}
-        volumeMode: Filesystem
-        {{ end }}
-        resources:
-          requests:
-            storage: 1Gi
 

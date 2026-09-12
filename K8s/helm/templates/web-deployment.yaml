@@ -17,17 +17,37 @@ spec:
       {{ if .Values.psp.enabled }}
       serviceAccountName: robot-shop
       {{ end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
       - name: web
-        image: {{ .Values.image.repo }}/rs-web:{{ .Values.image.version }}
-        imagePullPolicy: {{ .Values.image.pullPolicy }}
-        {{- if .Values.eum.key }}
+        image: quay.io/arthurdm-quay/rs-web:latest
+        imagePullPolicy: Always
         env:
+        {{- if .Values.eum.key }}
         - name: INSTANA_EUM_KEY
           value: {{ .Values.eum.key }}
         - name: INSTANA_EUM_REPORTING_URL
           value: {{ .Values.eum.url }}
         {{- end}}
+        - name: CATALOGUE_HOST
+          value: catalogue
+        - name: USER_HOST
+          value: user
+        - name: CART_HOST
+          value: cart
+        - name: SHIPPING_HOST
+          value: shipping
+        - name: PAYMENT_HOST
+          value: payment
+        - name: RATINGS_HOST
+          value: ratings
+        - name: CHECKOUT_RECOMMENDATIONS_HOST
+          value: checkout-recommendations
+        - name: LOAD_GEN_CONTROLLER_HOST
+          value: load-gen-controller
         ports:
         - containerPort: 8080
         resources:

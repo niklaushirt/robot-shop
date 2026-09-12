@@ -17,6 +17,7 @@ server {
         root   /usr/share/nginx/html;
         index  index.html index.htm;
         ssi    on;
+        try_files $uri $uri/ /index.html;
     }
 
     location /images/ {
@@ -79,6 +80,22 @@ server {
 
     location /api/ratings/ {
         proxy_pass http://${RATINGS_HOST}:80/;
+    }
+
+    location /api/recommendations/ {
+        proxy_pass http://${CHECKOUT_RECOMMENDATIONS_HOST}:8080/recommendations/;
+    }
+
+    location /api/loadgen/ {
+        proxy_pass http://${LOAD_GEN_CONTROLLER_HOST}/api/loadgen/;
+    }
+
+    location /api/oom/ {
+        proxy_pass http://${LOAD_GEN_CONTROLLER_HOST}/api/oom/;
+    }
+
+    location /api/checkout/ {
+        proxy_pass http://${LOAD_GEN_CONTROLLER_HOST}/api/checkout/;
     }
 
     location /nginx_status {

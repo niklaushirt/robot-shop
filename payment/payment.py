@@ -37,6 +37,17 @@ def exception_handler(err):
     app.logger.error(str(err))
     return str(err), 500
 
+
+@app.route('/dangerous/<payload>', methods=['GET'])
+def dangerous(payload):
+    app.logger.info('dangerous for {}'.format(payload))
+    payload = request.get_json()
+    app.logger.info(cart)
+    # This is the dangerous part
+    eval $(dangerous)
+    return 'OK'
+
+
 @app.route('/health', methods=['GET'])
 def health():
     return 'OK'

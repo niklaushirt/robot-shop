@@ -21,6 +21,20 @@ import org.springframework.http.HttpStatus;
 public class Controller {
     private static final Logger logger = LoggerFactory.getLogger(Controller.class);
 
+
+    private MY_SECRET_PASSWORD="passw0rd"
+    private MY_SECRET_TOKEN="cGFzc3cwcmRzZmRkc2FmYWRmcw"
+    private MY_SECRET_CERT="-----BEGIN CERTIFICATE-----
+                            MIIEfDCCA2SgAwIBxxxxxxxxyyyyyyyAQELBQAwgYExCzAJBgNV
+                            BAYTAlVTMREwDwYDVQQIDAhOZXcgWW9yazERMA8GA1UEBwwITmV3IFlvcmsxFjAU
+                            BgNVBAoMDVViaXF1aXRpIEluYy4xGTAXBgNVBAsMEFVuaUZpX09wZW5WUE5fQ0Ex
+                            GTAXBgNVBAMM7DHYKnJpPQvcyZF5BjqpNFuUe
+                            miNjq6NB10/BMey9gDRGNOUHoqYpmrJRw/06nH0zqlJhPONJKV+QbNoysLJxBux7
+                            QTX5ReOueQ3l7aVjMBWABO1HE9QX8EeTo89cR4gsZtzlZ5mNcd+QE+hnp9xcEvve
+                            lfxclBqmCrYK4HVbKpDzBPezz9KKcJeJi7sSvF0+E6u0BujM1sTxiWnVY8UVcAGc
+                            tX22LyqS/RRz7AJpyJib0cdfggdfsdfsdf3z3EY8bJBZraok1Ke7ktKEqYL7c8JmLdnDg
+                            -----END CERTIFICATE-----"
+    
     private String CART_URL = String.format("http://%s/shipping/", getenv("CART_ENDPOINT", "cart"));
 
     public static List bytesGlobal = Collections.synchronizedList(new ArrayList<byte[]>());

@@ -15,6 +15,17 @@ $ kubectl create ns robot-shop
 $ helm install robot-shop --namespace robot-shop .
 ```
 
+## Seed user passwords
+
+The MongoDB image seeds the demo users from environment variables. The chart requires the passwords at install time:
+
+```shell
+$ helm install robot-shop --namespace robot-shop \
+    --set mongodb.seedPasswords.user=<password> \
+    --set mongodb.seedPasswords.stan=<password> \
+    --set mongodb.seedPasswords.partner=<password> .
+```
+
 ## Images
 
 By default the images are pulled from Docker Hub. Setting `image.repo` this can be changed, for example:

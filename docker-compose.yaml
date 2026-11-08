@@ -4,6 +4,10 @@ services:
     build:
       context: mongo
     image: ${REPO}/rs-mongodb:${TAG}
+    environment:
+      - USER_SEED_PASSWORD=${USER_SEED_PASSWORD:?set USER_SEED_PASSWORD}
+      - STAN_SEED_PASSWORD=${STAN_SEED_PASSWORD:?set STAN_SEED_PASSWORD}
+      - PARTNER_SEED_PASSWORD=${PARTNER_SEED_PASSWORD:?set PARTNER_SEED_PASSWORD}
     networks:
       - robot-shop
     logging: &logging

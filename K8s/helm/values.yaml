@@ -39,7 +39,13 @@ catalogue: {}
 
 dispatch: {}
 
-mongodb: {}
+mongodb:
+  # Passwords for the seeded demo users, supply them at install time, e.g.
+  # --set mongodb.seedPasswords.user=... (they are intentionally not stored here)
+  seedPasswords:
+    user: null
+    stan: null
+    partner: null
 
 mysql: {}
 

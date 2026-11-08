@@ -33,11 +33,20 @@ const expLogger = expPino({
 
 const app = express();
 
+// do not disclose the framework in response headers
+app.disable('x-powered-by');
+
+// generic error response, details are only logged server side
+function sendServerError(res) {
+    res.status(500).json({ error: 'internal server error' });
+}
+
 app.use(expLogger);
 
 app.use((req, res, next) => {
     res.set('Timing-Allow-Origin', '*');
     res.set('Access-Control-Allow-Origin', '*');
+    res.set('X-Content-Type-Options', 'nosniff');
     next();
 });
 
@@ -76,7 +85,7 @@ app.get('/uniqueid', (req, res) => {
             });
         } else {
             req.log.error('ERROR', err);
-            res.status(500).send(err);
+            sendServerError(res);
         }
     });
 });
@@ -92,7 +101,7 @@ app.get('/check/:id', (req, res) => {
             }
         }).catch((e) => {
             req.log.error(e);
-            res.send(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -107,7 +116,7 @@ app.get('/users', (req, res) => {
             res.json(users);
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -136,7 +145,7 @@ app.post('/login', (req, res) => {
             }
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -167,12 +176,12 @@ app.post('/register', (req, res) => {
                     res.send('OK');
                 }).catch((e) => {
                     req.log.error('ERROR', e);
-                    res.status(500).send(e);
+                    sendServerError(res);
                 });
             }
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -203,7 +212,7 @@ app.post('/order/:id', (req, res) => {
                             res.send('OK');
                         }).catch((e) => {
                             req.log.error(e);
-                            res.status(500).send(e);
+                            sendServerError(res);
                         });
                     } else {
                         // no history
@@ -214,19 +223,19 @@ app.post('/order/:id', (req, res) => {
                             res.send('OK');
                         }).catch((e) => {
                             req.log.error(e);
-                            res.status(500).send(e);
+                            sendServerError(res);
                         });
                     }
                 }).catch((e) => {
                     req.log.error(e);
-                    res.status(500).send(e);
+                    sendServerError(res);
                 });
             } else {
                 res.status(404).send('name not found');
             }
         }).catch((e) => {
             req.log.error(e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -246,7 +255,7 @@ app.get('/history/:id', (req, res) => {
             }
         }).catch((e) => {
             req.log.error(e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');

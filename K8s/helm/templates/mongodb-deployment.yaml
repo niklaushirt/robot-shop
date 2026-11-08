@@ -21,6 +21,13 @@ spec:
       - name: mongodb
         image: {{ .Values.image.repo }}/rs-mongodb:{{ .Values.image.version }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: USER_SEED_PASSWORD
+          value: {{ required "mongodb.seedPasswords.user is required" .Values.mongodb.seedPasswords.user | quote }}
+        - name: STAN_SEED_PASSWORD
+          value: {{ required "mongodb.seedPasswords.stan is required" .Values.mongodb.seedPasswords.stan | quote }}
+        - name: PARTNER_SEED_PASSWORD
+          value: {{ required "mongodb.seedPasswords.partner is required" .Values.mongodb.seedPasswords.partner | quote }}
         ports:
         - containerPort: 27017
         resources:

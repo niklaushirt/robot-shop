@@ -40,11 +40,20 @@ const expLogger = expPino({
 
 const app = express();
 
+// do not disclose the framework in response headers
+app.disable('x-powered-by');
+
+// generic error response, details are only logged server side
+function sendServerError(res) {
+    res.status(500).json({ error: 'internal server error' });
+}
+
 app.use(expLogger);
 
 app.use((req, res, next) => {
     res.set('Timing-Allow-Origin', '*');
     res.set('Access-Control-Allow-Origin', '*');
+    res.set('X-Content-Type-Options', 'nosniff');
     next();
 });
 
@@ -85,7 +94,7 @@ app.get('/cart/:id', (req, res) => {
     redisClient.get(req.params.id, (err, data) => {
         if(err) {
             req.log.error('ERROR', err);
-            res.status(500).send(err);
+            sendServerError(res);
         } else {
             if(data == null) {
                 res.status(404).send('cart not found');
@@ -102,7 +111,7 @@ app.delete('/cart/:id', (req, res) => {
     redisClient.del(req.params.id, (err, data) => {
         if(err) {
             req.log.error('ERROR', err);
-            res.status(500).send(err);
+            sendServerError(res);
         } else {
             if(data == 1) {
                 res.send('OK');
@@ -118,7 +127,7 @@ app.get('/rename/:from/:to', (req, res) => {
     redisClient.get(req.params.from, (err, data) => {
         if(err) {
             req.log.error('ERROR', err);
-            res.status(500).send(err);
+            sendServerError(res);
         } else {
             if(data == null) {
                 res.status(404).send('cart not found');
@@ -128,7 +137,7 @@ app.get('/rename/:from/:to', (req, res) => {
                     res.json(cart);
                 }).catch((err) => {
                     req.log.error(err);
-                    res.status(500).send(err);
+                    sendServerError(res);
                 });
             }
         }
@@ -165,7 +174,7 @@ app.get('/add/:id/:sku/:qty', (req, res) => {
         redisClient.get(req.params.id, (err, data) => {
             if(err) {
                 req.log.error('ERROR', err);
-                res.status(500).send(err);
+                sendServerError(res);
             } else {
                 var cart;
                 if(data == null) {
@@ -199,13 +208,13 @@ app.get('/add/:id/:sku/:qty', (req, res) => {
                     res.json(cart);
                 }).catch((err) => {
                     req.log.error(err);
-                    res.status(500).send(err);
+                    sendServerError(res);
                 });
             }
         });
     }).catch((err) => {
         req.log.error(err);
-        res.status(500).send(err);
+        sendServerError(res);
     });
 });
 
@@ -227,7 +236,7 @@ app.get('/update/:id/:sku/:qty', (req, res) => {
     redisClient.get(req.params.id, (err, data) => {
         if(err) {
             req.log.error('ERROR', err);
-            res.status(500).send(err);
+            sendServerError(res);
         } else {
             if(data == null) {
                 res.status(404).send('cart not found');
@@ -257,7 +266,7 @@ app.get('/update/:id/:sku/:qty', (req, res) => {
                         res.json(cart);
                     }).catch((err) => {
                         req.log.error(err);
-                        res.status(500).send(err);
+                        sendServerError(res);
                     });
                 }
             }
@@ -276,7 +285,7 @@ app.post('/shipping/:id', (req, res) => {
         redisClient.get(req.params.id, (err, data) => {
             if(err) {
                 req.log.error('ERROR', err);
-                res.status(500).send(err);
+                sendServerError(res);
             } else {
                 if(data == null) {
                     req.log.info('no cart for', req.params.id);
@@ -313,7 +322,7 @@ app.post('/shipping/:id', (req, res) => {
                         res.json(cart);
                     }).catch((err) => {
                         req.log.error(err);
-                        res.status(500).send(err);
+                        sendServerError(res);
                     });
                 }
             }
@@ -359,7 +368,12 @@ function calcTax(total) {
 
 function getProduct(sku) {
     return new Promise((resolve, reject) => {
-        request('http://' + catalogueHost + ':8080/product/' + sku, (err, res, body) => {
+        // only allow plain SKUs so user input cannot alter the catalogue request URL
+        if(!/^[A-Za-z0-9_-]+$/.test(sku)) {
+            resolve(null);
+            return;
+        }
+        request('http://' + catalogueHost + ':8080/product/' + encodeURIComponent(sku), (err, res, body) => {
             if(err) {
                 reject(err);
             } else if(res.statusCode != 200) {

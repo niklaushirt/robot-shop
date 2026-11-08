@@ -30,6 +30,14 @@ To download the tracing module for Nginx, it needs a valid Instana agent key. Se
 $ export INSTANA_AGENT_KEY="<your agent key>"
 ```
 
+The MongoDB image seeds the demo users from environment variables, so no passwords are stored in the repository. Set them before building or running with docker-compose:
+
+```shell
+$ export USER_SEED_PASSWORD="<password for user 'user'>"
+$ export STAN_SEED_PASSWORD="<password for user 'stan'>"
+$ export PARTNER_SEED_PASSWORD="<password for user 'partner-57'>"
+```
+
 Now build all the images.
 
 ```shell

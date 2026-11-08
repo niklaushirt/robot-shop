@@ -30,11 +30,20 @@ var mongoConnected = false;
 
 const app = express();
 
+// do not disclose the framework in response headers
+app.disable('x-powered-by');
+
+// generic error response, details are only logged server side
+function sendServerError(res) {
+    res.status(500).json({ error: 'internal server error' });
+}
+
 app.use(expLogger);
 
 app.use((req, res, next) => {
     res.set('Timing-Allow-Origin', '*');
     res.set('Access-Control-Allow-Origin', '*');
+    res.set('X-Content-Type-Options', 'nosniff');
     next();
 });
 
@@ -70,7 +79,7 @@ app.get('/products', (req, res) => {
             res.json(products);
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -93,7 +102,7 @@ app.get('/product/:sku', (req, res) => {
             }
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
         }, delay);
     } else {
@@ -109,11 +118,11 @@ app.get('/products/:cat', (req, res) => {
             if(products) {
                 res.json(products);
             } else {
-                res.status(404).send('No products for ' + req.params.cat);
+                res.status(404).send('No products for category');
             }
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -128,7 +137,7 @@ app.get('/categories', (req, res) => {
             res.json(categories);
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');
@@ -143,7 +152,7 @@ app.get('/search/:text', (req, res) => {
             res.json(hits);
         }).catch((e) => {
             req.log.error('ERROR', e);
-            res.status(500).send(e);
+            sendServerError(res);
         });
     } else {
         req.log.error('database not available');

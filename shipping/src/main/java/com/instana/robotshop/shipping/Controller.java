@@ -126,6 +126,14 @@ public class Controller {
 
         logger.info("Calculation for {}", id);
 
+        // IDs are database keys and are always positive; reject anything else early
+        if (id <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid city id");
+        }
+
+        // City is global reference data (no owner or tenant attribute), so there is
+        // no per-user ownership to verify for this lookup.
+        // nosemgrep: ibm-concert.app.authz.idor.java.tenant-break.missing-user-ownership-check
         City city = cityrepo.findById(id);
         if (city == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "city not found");
